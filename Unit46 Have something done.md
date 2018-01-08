@@ -26,7 +26,7 @@ You can also say '**get** something done' instead of '**have** something done':
 > When are you going to **get the roof instead**? (= have the roof repaired)
 
 ---
-Somethings **have something done** has a different meaning. For example:
+Sometimes **have something done** has a different meaning. For example:
 > Paul and Karen **had their bags stolen** while they were travelling.
 
 This does not mean that they arranged for somebody to steal their bags. 'They **had their bags stolen**' means only: 'Their bags were stolen'.
