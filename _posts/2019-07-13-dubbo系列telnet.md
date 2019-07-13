@@ -1,7 +1,6 @@
 ---
 layout:     post
-title:      "dubbo系列 - telnet"
-subtitle:   "不适合人类阅读，非常水的自我笔记"
+title:      "Dubbo系列 - telnet"
 date:       2019-07-13
 author:     "Gary"
 header-img: "img/post-bg-unix-linux.jpg"
