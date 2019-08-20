@@ -6,7 +6,6 @@ author:     "Gary"
 header-img: "img/post-bg-unix-linux.jpg"
 tags:
 ---
-
 [toc]
 # LeaderZooKeeperServer
 
@@ -108,9 +107,11 @@ tags:
 2. 非sync请求，调用
 
 所以请求的调用链可以调整为：
+```
 PrepRequestProcessor->ProposalRequestProcessor->
                                           CommitProcessor->ToBeAppliedRequestProcessor->FinalRequestProcessor
                                           SyncRequestProcessor->AckRequestProcessor
+```
 
 
 
