@@ -7,5 +7,5 @@ hexo server
 
 部署:
 ```
-hexo deploy
+hexo deploy -g
 ```
