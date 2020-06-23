@@ -3,3 +3,9 @@ hexo博客
 ```
 hexo server
 ```
+
+
+部署:
+```
+hexo deploy
+```
