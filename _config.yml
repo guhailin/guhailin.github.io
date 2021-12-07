@@ -102,3 +102,9 @@ deploy:
   type: git
   repo: git@github.com:guhailin/guhailin.github.io.git
   branch: master
+
+math:
+  mathjax:
+    enable: true
+    # See: https://mhchem.github.io/MathJax-mhchem/
+    mhchem: true
