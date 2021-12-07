@@ -1,0 +1,400 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Attention和Transformer | 顾海林个人博客</title><meta name="author" content="Gu Hailin"><meta name="copyright" content="Gu Hailin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1.Self-Attention 参考Keras官方文档：https:&#x2F;&#x2F;keras.io&#x2F;api&#x2F;layers&#x2F;attention_layers&#x2F;attention&#x2F; 论文公式：$$Attention(Q,K,V) &#x3D; softmax(\frac{QK^T}{\sqrt{d_k}})V$$ 构造参数：  use_scale&#x3D;False: scale指的是公式中的$\sqrt{d_k} $部分。默">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Attention和Transformer">
+<meta property="og:url" content="https://guhailin.github.io/2021/12/07/2021-12-07-attention/index.html">
+<meta property="og:site_name" content="顾海林个人博客">
+<meta property="og:description" content="1.Self-Attention 参考Keras官方文档：https:&#x2F;&#x2F;keras.io&#x2F;api&#x2F;layers&#x2F;attention_layers&#x2F;attention&#x2F; 论文公式：$$Attention(Q,K,V) &#x3D; softmax(\frac{QK^T}{\sqrt{d_k}})V$$ 构造参数：  use_scale&#x3D;False: scale指的是公式中的$\sqrt{d_k} $部分。默">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-12-06T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-07T08:01:23.947Z">
+<meta property="article:author" content="Gu Hailin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://guhailin.github.io/2021/12/07/2021-12-07-attention/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: 'Just',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Attention和Transformer',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-12-07 16:01:23'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">15</div></a></div></div></div><hr/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">顾海林个人博客</a></span><div id="menus"><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Attention和Transformer</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2021-12-06T16:00:00.000Z" title="Created 2021-12-07 00:00:00">2021-12-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2021-12-07T08:01:23.947Z" title="Updated 2021-12-07 16:01:23">2021-12-07</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Attention和Transformer"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="1-Self-Attention"><a href="#1-Self-Attention" class="headerlink" title="1.Self-Attention"></a>1.Self-Attention</h1><p><img src="https://raw.githubusercontent.com/guhailin/pic/master/20211206105928.png"></p>
+<p>参考Keras官方文档：<a target="_blank" rel="noopener" href="https://keras.io/api/layers/attention_layers/attention/">https://keras.io/api/layers/attention_layers/attention/</a></p>
+<p>论文公式：<br>$$<br>Attention(Q,K,V) = softmax(\frac{QK^T}{\sqrt{d_k}})V<br>$$</p>
+<p>构造参数：</p>
+<ul>
+<li>use_scale=False: scale指的是公式中的$\sqrt{d_k} $部分。默认为False，不会进行scale。如果为True，会创建一个可训练的变量来做scale</li>
+<li>causal: Boolean类型，主要用在decoder中。如果设置为True，会创建一个倒三角形状的mask。</li>
+</ul>
+<p>调用参数：</p>
+<ul>
+<li>inputs: [q, v, k]的列表，k可以为空，默认等于v。</li>
+<li>mask: [q_mask, v_mask]列表，</li>
+</ul>
+<p>假设输入 q = [batch_size, Tq, dim], v = [batch_size, Tv, dim], k = [batch_size, Tv, dim].<br>则输出 result = [batch_size, Tq, dim]</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">from</span> tensorflow.keras <span class="keyword">import</span> layers</span><br><span class="line">imdb = tf.keras.datasets.imdb</span><br><span class="line"></span><br><span class="line">vocab_size = <span class="number">10000</span></span><br><span class="line"></span><br><span class="line">(train_data, train_labels), (test_data, test_labels) = imdb.load_data(num_words=vocab_size)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 一个映射单词到整数索引的词典</span></span><br><span class="line">word_index = imdb.get_word_index()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保留第一个索引</span></span><br><span class="line">word_index = &#123;k:(v+<span class="number">3</span>) <span class="keyword">for</span> k,v <span class="keyword">in</span> word_index.items()&#125;</span><br><span class="line">word_index[<span class="string">&quot;&lt;PAD&gt;&quot;</span>] = <span class="number">0</span></span><br><span class="line">word_index[<span class="string">&quot;&lt;START&gt;&quot;</span>] = <span class="number">1</span></span><br><span class="line">word_index[<span class="string">&quot;&lt;UNK&gt;&quot;</span>] = <span class="number">2</span>  <span class="comment"># unknown</span></span><br><span class="line">word_index[<span class="string">&quot;&lt;UNUSED&gt;&quot;</span>] = <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 补齐</span></span><br><span class="line">train_data = tf.keras.preprocessing.sequence.pad_sequences(train_data, value=word_index[<span class="string">&quot;&lt;PAD&gt;&quot;</span>],padding=<span class="string">&#x27;post&#x27;</span>,maxlen=<span class="number">256</span>)</span><br><span class="line"></span><br><span class="line">test_data = tf.keras.preprocessing.sequence.pad_sequences(test_data,value=word_index[<span class="string">&quot;&lt;PAD&gt;&quot;</span>],padding=<span class="string">&#x27;post&#x27;</span>,maxlen=<span class="number">256</span>)</span><br><span class="line"></span><br><span class="line">x_val = train_data[:<span class="number">10000</span>]</span><br><span class="line">partial_x_train = train_data[<span class="number">10000</span>:]</span><br><span class="line"></span><br><span class="line">y_val = train_labels[:<span class="number">10000</span>]</span><br><span class="line">partial_y_train = train_labels[<span class="number">10000</span>:]</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">input</span> = tf.keras.Input(shape=(<span class="number">256</span>,))</span><br><span class="line">x = tf.keras.layers.Embedding(vocab_size, <span class="number">16</span>)(<span class="built_in">input</span>)</span><br><span class="line">x = tf.keras.layers.Attention(<span class="literal">True</span>)([x,x])</span><br><span class="line">x = tf.keras.layers.Attention(<span class="literal">True</span>)([x,x])</span><br><span class="line">x = tf.keras.layers.GlobalAveragePooling1D()(x)</span><br><span class="line">x = tf.keras.layers.Dense(<span class="number">2</span>, activation=<span class="string">&#x27;softmax&#x27;</span>)(x)</span><br><span class="line"></span><br><span class="line">model = tf.keras.Model(inputs = <span class="built_in">input</span>, outputs = x)</span><br><span class="line"></span><br><span class="line">model.<span class="built_in">compile</span>(optimizer=<span class="string">&#x27;adam&#x27;</span>,</span><br><span class="line">              loss=tf.keras.losses.SparseCategoricalCrossentropy(),</span><br><span class="line">              metrics=[<span class="string">&#x27;accuracy&#x27;</span>])</span><br><span class="line"></span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">history = model.fit(partial_x_train,</span><br><span class="line">                    partial_y_train,</span><br><span class="line">                    epochs=<span class="number">20</span>,</span><br><span class="line">                    batch_size=<span class="number">512</span>,</span><br><span class="line">                    validation_data=(x_val, y_val),</span><br><span class="line">                    verbose=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<pre><code>Model: &quot;model_4&quot;
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_7 (InputLayer)           [(None, 256)]        0           []                               
+                                                                                                  
+ embedding_10 (Embedding)       (None, 256, 16)      160000      [&#39;input_7[0][0]&#39;]                
+                                                                                                  
+ attention_2 (Attention)        (None, 256, 16)      1           [&#39;embedding_10[0][0]&#39;,           
+                                                                  &#39;embedding_10[0][0]&#39;]           
+                                                                                                  
+ attention_3 (Attention)        (None, 256, 16)      1           [&#39;attention_2[0][0]&#39;,            
+                                                                  &#39;attention_2[0][0]&#39;]            
+                                                                                                  
+ global_average_pooling1d_4 (Gl  (None, 16)          0           [&#39;attention_3[0][0]&#39;]            
+ obalAveragePooling1D)                                                                            
+                                                                                                  
+ dense_8 (Dense)                (None, 2)            34          [&#39;global_average_pooling1d_4[0][0
+                                                                 ]&#39;]                              
+                                                                                                  
+==================================================================================================
+Total params: 160,036
+Trainable params: 160,036
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+30/30 [==============================] - 2s 41ms/step - loss: 0.6911 - accuracy: 0.5694 - val_loss: 0.6886 - val_accuracy: 0.6503
+Epoch 2/20
+30/30 [==============================] - 1s 37ms/step - loss: 0.6852 - accuracy: 0.6934 - val_loss: 0.6823 - val_accuracy: 0.7106
+Epoch 3/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.6768 - accuracy: 0.7365 - val_loss: 0.6730 - val_accuracy: 0.7323
+Epoch 4/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.6646 - accuracy: 0.7499 - val_loss: 0.6600 - val_accuracy: 0.7399
+Epoch 5/20
+30/30 [==============================] - 1s 31ms/step - loss: 0.6480 - accuracy: 0.7581 - val_loss: 0.6426 - val_accuracy: 0.7454
+Epoch 6/20
+30/30 [==============================] - 1s 31ms/step - loss: 0.6263 - accuracy: 0.7635 - val_loss: 0.6202 - val_accuracy: 0.7486
+Epoch 7/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.5987 - accuracy: 0.7675 - val_loss: 0.5919 - val_accuracy: 0.7623
+Epoch 8/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.5626 - accuracy: 0.7833 - val_loss: 0.5542 - val_accuracy: 0.7758
+Epoch 9/20
+30/30 [==============================] - 1s 32ms/step - loss: 0.5179 - accuracy: 0.7997 - val_loss: 0.5088 - val_accuracy: 0.7938
+Epoch 10/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.4665 - accuracy: 0.8207 - val_loss: 0.4566 - val_accuracy: 0.8185
+Epoch 11/20
+30/30 [==============================] - 1s 32ms/step - loss: 0.4087 - accuracy: 0.8449 - val_loss: 0.3990 - val_accuracy: 0.8420
+Epoch 12/20
+30/30 [==============================] - 1s 31ms/step - loss: 0.3526 - accuracy: 0.8658 - val_loss: 0.3532 - val_accuracy: 0.8568
+Epoch 13/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.3119 - accuracy: 0.8798 - val_loss: 0.3266 - val_accuracy: 0.8673
+Epoch 14/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.2873 - accuracy: 0.8867 - val_loss: 0.3129 - val_accuracy: 0.8738
+Epoch 15/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.2710 - accuracy: 0.8912 - val_loss: 0.3045 - val_accuracy: 0.8770
+Epoch 16/20
+30/30 [==============================] - 1s 31ms/step - loss: 0.2580 - accuracy: 0.8961 - val_loss: 0.2983 - val_accuracy: 0.8806
+Epoch 17/20
+30/30 [==============================] - 1s 31ms/step - loss: 0.2471 - accuracy: 0.9017 - val_loss: 0.2944 - val_accuracy: 0.8822
+Epoch 18/20
+30/30 [==============================] - 1s 36ms/step - loss: 0.2369 - accuracy: 0.9073 - val_loss: 0.2917 - val_accuracy: 0.8839
+Epoch 19/20
+30/30 [==============================] - 1s 31ms/step - loss: 0.2279 - accuracy: 0.9110 - val_loss: 0.2893 - val_accuracy: 0.8840
+Epoch 20/20
+30/30 [==============================] - 1s 37ms/step - loss: 0.2190 - accuracy: 0.9157 - val_loss: 0.2882 - val_accuracy: 0.8852
+</code></pre>
+<h1 id="2-MultiHeadAttention"><a href="#2-MultiHeadAttention" class="headerlink" title="2.MultiHeadAttention"></a>2.MultiHeadAttention</h1><p><img src="https://raw.githubusercontent.com/guhailin/pic/master/20211206110428.png"></p>
+<p>参考keras官方文档：<a target="_blank" rel="noopener" href="https://keras.io/api/layers/attention_layers/multi_head_attention/">https://keras.io/api/layers/attention_layers/multi_head_attention/</a><br>初始化关键参数：</p>
+<ul>
+<li>num_heads ：使用多少个头</li>
+<li>key_dim ：每个头的K第一个Dense层的维度</li>
+<li>value_dim=None, 每个头的V第一个Dense层的维度，可以为空。Self-Attention的话V=K，就可以不用填。</li>
+<li>output_shape=None, 输出的维度，对应最后一层的Dense维度，默认等于输入的维度。<br>这里没有说query_dim，根据源码query_dim=key_dim。（因为Q要和K的转置矩阵相乘，所以必须一样）</li>
+</ul>
+<p>调用关键参数：</p>
+<ul>
+<li>query : Q, shape=(B, T, dim).</li>
+<li>value : V, shape=(B, S, dim).</li>
+<li>key=None : K, shape=(B, S, dim). 为None时等于V.</li>
+</ul>
+<p>假设输入<strong>Q=(B, T, dim),V=(B, S, dim),K=(B, S, dim)<strong>。<br>则经过第一层Dense之后，输出是</strong>Q’= (B, T, key_dim),V’=(B, S, value_dim),K’=(B, S, key_dim)</strong>.<br>经过attention层之后，输出是<strong>attention_result = (B, T, value_dim)</strong>.<br>经过Concat层之后，输出<strong>concat = (B, T, value_dim * num_heads)</strong>.<br>经过最后一层Dense之后，输出 <strong>result = (B, T, <em>output_shape</em>)</strong>.  </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">input</span> = tf.keras.Input(shape=(<span class="number">256</span>,))</span><br><span class="line">x = tf.keras.layers.Embedding(vocab_size, <span class="number">16</span>)(<span class="built_in">input</span>)</span><br><span class="line"><span class="comment">#第一个MultiHeadAttention没有指定output_shape，输出和输入一致</span></span><br><span class="line">x = tf.keras.layers.MultiHeadAttention(num_heads=<span class="number">2</span>, key_dim=<span class="number">2</span>)(x,x)</span><br><span class="line"><span class="comment">#第二个MultiHeadAttention指定了output_shape，改变了输出的尺寸</span></span><br><span class="line">x = tf.keras.layers.MultiHeadAttention(num_heads=<span class="number">2</span>, key_dim=<span class="number">2</span>,output_shape=<span class="number">20</span>)(x,x)</span><br><span class="line">x = tf.keras.layers.GlobalAveragePooling1D()(x)</span><br><span class="line">x = tf.keras.layers.Dense(<span class="number">2</span>, activation=<span class="string">&#x27;softmax&#x27;</span>)(x)</span><br><span class="line"></span><br><span class="line">model = tf.keras.Model(inputs = <span class="built_in">input</span>, outputs = x)</span><br><span class="line"></span><br><span class="line">model.<span class="built_in">compile</span>(optimizer=<span class="string">&#x27;adam&#x27;</span>,</span><br><span class="line">              loss=tf.keras.losses.SparseCategoricalCrossentropy(),</span><br><span class="line">              metrics=[<span class="string">&#x27;accuracy&#x27;</span>])</span><br><span class="line"></span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">history = model.fit(partial_x_train,</span><br><span class="line">                    partial_y_train,</span><br><span class="line">                    epochs=<span class="number">10</span>,</span><br><span class="line">                    batch_size=<span class="number">512</span>,</span><br><span class="line">                    validation_data=(x_val, y_val),</span><br><span class="line">                    verbose=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<pre><code>Model: &quot;model_5&quot;
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_8 (InputLayer)           [(None, 256)]        0           []                               
+                                                                                                  
+ embedding_11 (Embedding)       (None, 256, 16)      160000      [&#39;input_8[0][0]&#39;]                
+                                                                                                  
+ multi_head_attention_5 (MultiH  (None, 256, 16)     284         [&#39;embedding_11[0][0]&#39;,           
+ eadAttention)                                                    &#39;embedding_11[0][0]&#39;]           
+                                                                                                  
+ multi_head_attention_6 (MultiH  (None, 256, 20)     304         [&#39;multi_head_attention_5[0][0]&#39;, 
+ eadAttention)                                                    &#39;multi_head_attention_5[0][0]&#39;] 
+                                                                                                  
+ global_average_pooling1d_5 (Gl  (None, 20)          0           [&#39;multi_head_attention_6[0][0]&#39;] 
+ obalAveragePooling1D)                                                                            
+                                                                                                  
+ dense_9 (Dense)                (None, 2)            42          [&#39;global_average_pooling1d_5[0][0
+                                                                 ]&#39;]                              
+                                                                                                  
+==================================================================================================
+Total params: 160,630
+Trainable params: 160,630
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/10
+30/30 [==============================] - 3s 71ms/step - loss: 0.6933 - accuracy: 0.4964 - val_loss: 0.6932 - val_accuracy: 0.4947
+Epoch 2/10
+30/30 [==============================] - 2s 66ms/step - loss: 0.6915 - accuracy: 0.5567 - val_loss: 0.6877 - val_accuracy: 0.7045
+Epoch 3/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.6688 - accuracy: 0.7019 - val_loss: 0.6346 - val_accuracy: 0.7139
+Epoch 4/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.5510 - accuracy: 0.7667 - val_loss: 0.4797 - val_accuracy: 0.7833
+Epoch 5/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.3825 - accuracy: 0.8382 - val_loss: 0.3599 - val_accuracy: 0.8478
+Epoch 6/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.2829 - accuracy: 0.8871 - val_loss: 0.3200 - val_accuracy: 0.8714
+Epoch 7/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.2363 - accuracy: 0.9073 - val_loss: 0.3078 - val_accuracy: 0.8786
+Epoch 8/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.2000 - accuracy: 0.9245 - val_loss: 0.3040 - val_accuracy: 0.8828
+Epoch 9/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.1689 - accuracy: 0.9388 - val_loss: 0.3101 - val_accuracy: 0.8851
+Epoch 10/10
+30/30 [==============================] - 2s 55ms/step - loss: 0.1441 - accuracy: 0.9494 - val_loss: 0.3257 - val_accuracy: 0.8847
+</code></pre>
+<h1 id="3-Transformer"><a href="#3-Transformer" class="headerlink" title="3.Transformer"></a>3.Transformer</h1><p><img src="https://raw.githubusercontent.com/guhailin/pic/master/20211207103639.png"></p>
+<p>Transformer（左）分为两个sub-layer。第一个是MultiHeadAttention的残差模块，最后经过一个LayerNormalization。第二个是FFN的残差模块，其中包含两个Dense层。</p>
+<p>Transformer在Keras可以直接引用的类，可以参考Example里的实现：<a target="_blank" rel="noopener" href="https://keras.io/examples/nlp/text_classification_with_transformer/">https://keras.io/examples/nlp/text_classification_with_transformer/</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TransformerBlock</span>(<span class="params">layers.Layer</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    输入参数：</span></span><br><span class="line"><span class="string">        embed_dim: 输入数据的最后一维尺寸，决定MultiHeadAttention中每个头的K第一个Dense层的维度，还有FFN块中最后一个Dense的输出维度。</span></span><br><span class="line"><span class="string">            这里直接将输入的尺寸设为Attention的key_dim，有的地方key_dim是3倍的embed_dim。这个key_dim的设置值得研究。</span></span><br><span class="line"><span class="string">            最后FFN因为要做残差，所以尺寸必须和输入一样。</span></span><br><span class="line"><span class="string">        num_heads: 头数</span></span><br><span class="line"><span class="string">        ff_dim: 决定FFN中第一个Dense的维度。参考：在Bert中一般是最后输出的4倍。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, embed_dim, num_heads, ff_dim, rate=<span class="number">0.1</span></span>):</span></span><br><span class="line">        <span class="built_in">super</span>(TransformerBlock, self).__init__()</span><br><span class="line">        self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)</span><br><span class="line">        self.ffn = tf.keras.Sequential(</span><br><span class="line">            [layers.Dense(ff_dim, activation=<span class="string">&quot;relu&quot;</span>), layers.Dense(embed_dim),]</span><br><span class="line">        )</span><br><span class="line">        self.layernorm1 = layers.LayerNormalization(epsilon=<span class="number">1e-6</span>)</span><br><span class="line">        self.layernorm2 = layers.LayerNormalization(epsilon=<span class="number">1e-6</span>)</span><br><span class="line">        self.dropout1 = layers.Dropout(rate)</span><br><span class="line">        self.dropout2 = layers.Dropout(rate)</span><br><span class="line"></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    输入参数：</span></span><br><span class="line"><span class="string">        inputs: (batch_size, T, embed_dim)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    进过第一个MultiHeadAttention后输出(batch_size, T, embed_dim)</span></span><br><span class="line"><span class="string">    然后听过残差模块和layernorm1，不会影响shape，输出(batch_size, T, embed_dim)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    第二个模块输入(batch_size, T, embed_dim)，</span></span><br><span class="line"><span class="string">    经过第一个Dense后输出(batch_size, T, ff_dim)</span></span><br><span class="line"><span class="string">    经过第二个Dense后输出(batch_size, T, embed_dim)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    输出(batch_size, T, embed_dim)</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs, training</span>):</span></span><br><span class="line">        attn_output = self.att(inputs, inputs)</span><br><span class="line">        attn_output = self.dropout1(attn_output, training=training)</span><br><span class="line">        out1 = self.layernorm1(inputs + attn_output)</span><br><span class="line">        ffn_output = self.ffn(out1)</span><br><span class="line">        ffn_output = self.dropout2(ffn_output, training=training)</span><br><span class="line">        <span class="keyword">return</span> self.layernorm2(out1 + ffn_output)</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">embed_dim = <span class="number">16</span></span><br><span class="line"><span class="built_in">input</span> = tf.keras.Input(shape=(<span class="number">256</span>,))</span><br><span class="line">x = tf.keras.layers.Embedding(vocab_size, embed_dim)(<span class="built_in">input</span>)</span><br><span class="line">x = TransformerBlock(embed_dim, <span class="number">2</span>, embed_dim*<span class="number">4</span>)(x)</span><br><span class="line">x = tf.keras.layers.GlobalAveragePooling1D()(x)</span><br><span class="line">x = tf.keras.layers.Dense(<span class="number">2</span>, activation=<span class="string">&#x27;softmax&#x27;</span>)(x)</span><br><span class="line"></span><br><span class="line">model = tf.keras.Model(inputs = <span class="built_in">input</span>, outputs = x)</span><br><span class="line"></span><br><span class="line">model.<span class="built_in">compile</span>(optimizer=<span class="string">&#x27;adam&#x27;</span>,</span><br><span class="line">              loss=tf.keras.losses.SparseCategoricalCrossentropy(),</span><br><span class="line">              metrics=[<span class="string">&#x27;accuracy&#x27;</span>])</span><br><span class="line"></span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">history = model.fit(partial_x_train,</span><br><span class="line">                    partial_y_train,</span><br><span class="line">                    epochs=<span class="number">10</span>,</span><br><span class="line">                    batch_size=<span class="number">512</span>,</span><br><span class="line">                    validation_data=(x_val, y_val),</span><br><span class="line">                    verbose=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<pre><code>Model: &quot;model_6&quot;
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ input_9 (InputLayer)        [(None, 256)]             0         
+                                                                 
+ embedding_12 (Embedding)    (None, 256, 16)           160000    
+                                                                 
+ transformer_block_3 (Transf  (None, 256, 16)          4352      
+ ormerBlock)                                                     
+                                                                 
+ global_average_pooling1d_6   (None, 16)               0         
+ (GlobalAveragePooling1D)                                        
+                                                                 
+ dense_12 (Dense)            (None, 2)                 34        
+                                                                 
+=================================================================
+Total params: 164,386
+Trainable params: 164,386
+Non-trainable params: 0
+_________________________________________________________________
+Epoch 1/10
+30/30 [==============================] - 2s 49ms/step - loss: 0.6453 - accuracy: 0.6542 - val_loss: 0.5804 - val_accuracy: 0.7218
+Epoch 2/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.4940 - accuracy: 0.8055 - val_loss: 0.4534 - val_accuracy: 0.7943
+Epoch 3/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.3218 - accuracy: 0.8714 - val_loss: 0.3023 - val_accuracy: 0.8703
+Epoch 4/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.2155 - accuracy: 0.9139 - val_loss: 0.3076 - val_accuracy: 0.8729
+Epoch 5/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.1466 - accuracy: 0.9483 - val_loss: 0.3215 - val_accuracy: 0.8767
+Epoch 6/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.1057 - accuracy: 0.9649 - val_loss: 0.3564 - val_accuracy: 0.8784
+Epoch 7/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0778 - accuracy: 0.9763 - val_loss: 0.4053 - val_accuracy: 0.8732
+Epoch 8/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0503 - accuracy: 0.9872 - val_loss: 0.4719 - val_accuracy: 0.8704
+Epoch 9/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0376 - accuracy: 0.9906 - val_loss: 0.5576 - val_accuracy: 0.8607
+Epoch 10/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0551 - accuracy: 0.9811 - val_loss: 0.6259 - val_accuracy: 0.8409
+</code></pre>
+<h1 id="4-Posiotnal-Embedding"><a href="#4-Posiotnal-Embedding" class="headerlink" title="4.Posiotnal Embedding"></a>4.Posiotnal Embedding</h1><p>因为attention缺少位置信息，所以在输入中需要人为额外加入位置的信息。<br>论文中Positional Encoding是由一个三角函数算出，非常难理解，参考：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/347678607">https://www.zhihu.com/question/347678607</a><br>好在Bert中使用了Positonal Embedding。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PositionalEmbedding</span>(<span class="params">layers.Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, sequence_length, output_dim, **kwargs</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__(**kwargs)</span><br><span class="line">        self.position_embeddings = layers.Embedding(</span><br><span class="line">            input_dim=sequence_length, output_dim=output_dim</span><br><span class="line">        )</span><br><span class="line">        self.sequence_length = sequence_length</span><br><span class="line">        self.output_dim = output_dim</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs</span>):</span></span><br><span class="line">        <span class="comment"># The inputs are of shape: `(batch_size, frames, num_features)`</span></span><br><span class="line">        length = tf.shape(inputs)[<span class="number">1</span>]</span><br><span class="line">        positions = tf.<span class="built_in">range</span>(start=<span class="number">0</span>, limit=length, delta=<span class="number">1</span>)</span><br><span class="line">        embedded_positions = self.position_embeddings(positions)</span><br><span class="line">        <span class="keyword">return</span> inputs + embedded_positions</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">embed_dim = <span class="number">16</span></span><br><span class="line"><span class="built_in">input</span> = tf.keras.Input(shape=(<span class="number">256</span>,))</span><br><span class="line">x = tf.keras.layers.Embedding(vocab_size, embed_dim)(<span class="built_in">input</span>)</span><br><span class="line">x = PositionalEmbedding(<span class="number">256</span>, embed_dim)(x)</span><br><span class="line">x = TransformerBlock(embed_dim, <span class="number">2</span>, embed_dim*<span class="number">4</span>)(x)</span><br><span class="line">x = tf.keras.layers.GlobalAveragePooling1D()(x)</span><br><span class="line">x = tf.keras.layers.Dense(<span class="number">2</span>, activation=<span class="string">&#x27;softmax&#x27;</span>)(x)</span><br><span class="line"></span><br><span class="line">model = tf.keras.Model(inputs = <span class="built_in">input</span>, outputs = x)</span><br><span class="line"></span><br><span class="line">model.<span class="built_in">compile</span>(optimizer=<span class="string">&#x27;adam&#x27;</span>,</span><br><span class="line">              loss=tf.keras.losses.SparseCategoricalCrossentropy(),</span><br><span class="line">              metrics=[<span class="string">&#x27;accuracy&#x27;</span>])</span><br><span class="line"></span><br><span class="line">model.summary()</span><br><span class="line"></span><br><span class="line">history = model.fit(partial_x_train,</span><br><span class="line">                    partial_y_train,</span><br><span class="line">                    epochs=<span class="number">10</span>,</span><br><span class="line">                    batch_size=<span class="number">512</span>,</span><br><span class="line">                    validation_data=(x_val, y_val),</span><br><span class="line">                    verbose=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<pre><code>Model: &quot;model_7&quot;
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ input_10 (InputLayer)       [(None, 256)]             0         
+                                                                 
+ embedding_13 (Embedding)    (None, 256, 16)           160000    
+                                                                 
+ positional_embedding_4 (Pos  (None, 256, 16)          4096      
+ itionalEmbedding)                                               
+                                                                 
+ transformer_block_4 (Transf  (None, 256, 16)          4352      
+ ormerBlock)                                                     
+                                                                 
+ global_average_pooling1d_7   (None, 16)               0         
+ (GlobalAveragePooling1D)                                        
+                                                                 
+ dense_15 (Dense)            (None, 2)                 34        
+                                                                 
+=================================================================
+Total params: 168,482
+Trainable params: 168,482
+Non-trainable params: 0
+_________________________________________________________________
+Epoch 1/10
+30/30 [==============================] - 3s 50ms/step - loss: 0.6836 - accuracy: 0.5669 - val_loss: 0.6342 - val_accuracy: 0.6866
+Epoch 2/10
+30/30 [==============================] - 1s 43ms/step - loss: 0.5686 - accuracy: 0.7971 - val_loss: 0.4979 - val_accuracy: 0.8068
+Epoch 3/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.3746 - accuracy: 0.8607 - val_loss: 0.3159 - val_accuracy: 0.8717
+Epoch 4/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.2352 - accuracy: 0.9043 - val_loss: 0.2971 - val_accuracy: 0.8763
+Epoch 5/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.1669 - accuracy: 0.9396 - val_loss: 0.3304 - val_accuracy: 0.8711
+Epoch 6/10
+30/30 [==============================] - 1s 43ms/step - loss: 0.1243 - accuracy: 0.9583 - val_loss: 0.3271 - val_accuracy: 0.8796
+Epoch 7/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0952 - accuracy: 0.9687 - val_loss: 0.4539 - val_accuracy: 0.8557
+Epoch 8/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0709 - accuracy: 0.9792 - val_loss: 0.4123 - val_accuracy: 0.8745
+Epoch 9/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0486 - accuracy: 0.9873 - val_loss: 0.5071 - val_accuracy: 0.8647
+Epoch 10/10
+30/30 [==============================] - 1s 42ms/step - loss: 0.0421 - accuracy: 0.9881 - val_loss: 0.5244 - val_accuracy: 0.8679
+</code></pre>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Gu Hailin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://guhailin.github.io/2021/12/07/2021-12-07-attention/">https://guhailin.github.io/2021/12/07/2021-12-07-attention/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/04/29/2021-04-29-CNN%E8%B8%A9%E5%9D%91/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">CNN踩坑</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Gu Hailin</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>Announcement</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Catalog</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Self-Attention"><span class="toc-number">1.</span> <span class="toc-text">1.Self-Attention</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-MultiHeadAttention"><span class="toc-number">2.</span> <span class="toc-text">2.MultiHeadAttention</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-Transformer"><span class="toc-number">3.</span> <span class="toc-text">3.Transformer</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Posiotnal-Embedding"><span class="toc-number">4.</span> <span class="toc-text">4.Posiotnal Embedding</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2021/12/07/2021-12-07-attention/" title="Attention和Transformer"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Attention和Transformer"/></a><div class="content"><a class="title" href="/2021/12/07/2021-12-07-attention/" title="Attention和Transformer">Attention和Transformer</a><time datetime="2021-12-06T16:00:00.000Z" title="Created 2021-12-07 00:00:00">2021-12-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/04/29/2021-04-29-CNN%E8%B8%A9%E5%9D%91/" title="CNN踩坑"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CNN踩坑"/></a><div class="content"><a class="title" href="/2021/04/29/2021-04-29-CNN%E8%B8%A9%E5%9D%91/" title="CNN踩坑">CNN踩坑</a><time datetime="2021-04-28T16:00:00.000Z" title="Created 2021-04-29 00:00:00">2021-04-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2020/11/22/2020-11-22-%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0/" title="推荐系统笔记"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="推荐系统笔记"/></a><div class="content"><a class="title" href="/2020/11/22/2020-11-22-%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0/" title="推荐系统笔记">推荐系统笔记</a><time datetime="2020-11-21T16:00:00.000Z" title="Created 2020-11-22 00:00:00">2020-11-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2020/07/30/2020-07-30-feign10.12%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="feign10.12源码解析"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="feign10.12源码解析"/></a><div class="content"><a class="title" href="/2020/07/30/2020-07-30-feign10.12%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="feign10.12源码解析">feign10.12源码解析</a><time datetime="2020-07-29T16:00:00.000Z" title="Created 2020-07-30 00:00:00">2020-07-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2020/06/23/2020-06-23-%E3%80%8A%E5%89%91%E6%A1%A5%E8%8B%B1%E8%AF%AD%E5%9C%A8%E7%94%A8%E3%80%8B%E7%AC%94%E8%AE%B0/" title="《剑桥英语在用》笔记"><img src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《剑桥英语在用》笔记"/></a><div class="content"><a class="title" href="/2020/06/23/2020-06-23-%E3%80%8A%E5%89%91%E6%A1%A5%E8%8B%B1%E8%AF%AD%E5%9C%A8%E7%94%A8%E3%80%8B%E7%AC%94%E8%AE%B0/" title="《剑桥英语在用》笔记">《剑桥英语在用》笔记</a><time datetime="2020-06-22T16:00:00.000Z" title="Created 2020-06-23 00:00:00">2020-06-23</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By Gu Hailin</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between single-column and double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
